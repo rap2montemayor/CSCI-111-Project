@@ -4,6 +4,7 @@
 // To do
 
 class AI {
+public:
     enum TileState {
         Passable = 0b000001,
         Dark     = 0b000010,
@@ -14,7 +15,5 @@ class AI {
     };
     std::vector<std::vector<int>>& board;
 
-public:
-    virtual AI(std::vector<std::vector<int>>& board) = 0;    
-    virtual vector<pair<int, int>> nextIteration() = 0;
+    virtual std::vector<std::pair<int, int>> nextIteration() = 0;
 };
