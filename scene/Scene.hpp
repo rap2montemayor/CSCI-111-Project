@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <list>
 #include <memory>
+#include "../ai/AI.hpp"
 
 // Not yet finalized
 
@@ -41,4 +42,6 @@ public:
     void processInput(sf::Event& event);
     Transition update();
     void render(sf::RenderWindow& window);
+    void generateGrid(int rows, int cols);
+    void recolorTile(int r, int c);
 };
