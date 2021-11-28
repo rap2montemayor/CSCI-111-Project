@@ -424,6 +424,7 @@ void PlayScene::moveChild() {
             }
         }
         mode = ModeID::None;
+        hardReset();
     }
 }
 
@@ -433,13 +434,13 @@ void PlayScene::moveGhost() {
         mode = ModeID::MovingGhost;
     } else {
         board[ghost.first][ghost.second] |= AI::TileState::Dark;
-        recolorTile(ghost.first, ghost.second);
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
                 origBoard[i][j] = board[i][j];
             }
         }
         mode = ModeID::None;
+        hardReset();
     }
 }
 
@@ -454,5 +455,6 @@ void PlayScene::editGrid() {
             }
         }
         mode = ModeID::None;
+        hardReset();
     }
 }
