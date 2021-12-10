@@ -84,6 +84,7 @@ void PlayScene::recolorTile(int r, int c) {
 
     gridContents[r][c].setFillColor(sf::Color::Black);
     gridContents[r][c].setOutlineThickness(0);
+    gridContents[r][c].setOutlineColor(sf::Color::Black);
 
     if (state & AI::TileState::Passable) {
         gridContents[r][c].setFillColor(sf::Color::White);
@@ -275,7 +276,6 @@ void PlayScene::render(sf::RenderWindow& window) {
     window.display();
 }
 
-
 // refactor this
 void PlayScene::generateGrid(int rows, int cols) {
     std::mt19937 rng(std::chrono::system_clock::now().time_since_epoch().count());
@@ -283,8 +283,9 @@ void PlayScene::generateGrid(int rows, int cols) {
     std::uniform_real_distribution<double> rand(0.0, 1.0);
     
     // Initialize grid
-    board.resize(rows, std::vector<int>(cols));
-    for (std::vector<int> &v: board) {
+    board.resize(rows);
+    for (std::vector<int>& v: board) {
+        v.resize(cols);
         fill(v.begin(), v.end(), AI::TileState::Passable);
     }
 
@@ -314,40 +315,42 @@ void PlayScene::generateGrid(int rows, int cols) {
             }
         }
     }
+    board[ghostr][ghostc] |= AI::TileState::Passable;
+    board[childr][childc] |= AI::TileState::Passable;
 
     // Ensure there's a solution
     // DFS from ghost to child. next tiles are chosen randomly
     // make all tiles in that path passable
-    std::vector<std::vector<bool>> vis(rows, std::vector<bool>(cols));
-    std::stack<std::pair<int, int>> stk({{ghostr, ghostc}});
-    std::pair<int, int> d[] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-    while (not stk.empty()) {
-        int curr = stk.top().first, curc = stk.top().second;
-        vis[curr][curc] = true;
+    // std::vector<std::vector<bool>> vis(rows, std::vector<bool>(cols));
+    // std::stack<std::pair<int, int>> stk({{ghostr, ghostc}});
+    // std::pair<int, int> d[] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+    // while (not stk.empty()) {
+    //     int curr = stk.top().first, curc = stk.top().second;
+    //     vis[curr][curc] = true;
 
-        if (curr == childr and curc == childc) {
-            break;
-        }
+    //     if (curr == childr and curc == childc) {
+    //         break;
+    //     }
 
-        bool pushed = false;
-        std::shuffle(d, d+4, rng);
-        for (int i = 0; i < 4; ++i) {
-            int nextr = curr+d[i].first, nextc = curc+d[i].second;
-            if (nextr < 0 or nextr >= rows or nextc < 0 or nextc >= cols or vis[nextr][nextc]) {
-                continue;
-            }
-            pushed = true;
-            stk.push({nextr, nextc});
-            break;
-        }
-        if (not pushed) {
-            stk.pop();
-        }
-    }
-    while (not stk.empty()) {
-        board[stk.top().first][stk.top().second] |= AI::TileState::Passable;
-        stk.pop();
-    }
+    //     bool pushed = false;
+    //     std::shuffle(d, d+4, rng);
+    //     for (int i = 0; i < 4; ++i) {
+    //         int nextr = curr+d[i].first, nextc = curc+d[i].second;
+    //         if (nextr < 0 or nextr >= rows or nextc < 0 or nextc >= cols or vis[nextr][nextc]) {
+    //             continue;
+    //         }
+    //         pushed = true;
+    //         stk.push({nextr, nextc});
+    //         break;
+    //     }
+    //     if (not pushed) {
+    //         stk.pop();
+    //     }
+    // }
+    // while (not stk.empty()) {
+    //     board[stk.top().first][stk.top().second] |= AI::TileState::Passable;
+    //     stk.pop();
+    // }
 }
 
 void PlayScene::nextIteration() {
@@ -397,15 +400,16 @@ void PlayScene::randomize() {
     solved = false;
     autoPlay = false;
     generateGrid(rows, cols);
-    origBoard.resize(rows, std::vector<int>(cols));
 
     // populate grid
+    origBoard.resize(rows);
     gridContents.resize(rows);
     for (int i = 0; i < rows; ++i) {
+        origBoard[i].resize(cols);
         gridContents[i].resize(cols);
         for (int j = 0; j < cols; ++j) {
             origBoard[i][j] = board[i][j];
-            gridContents[i][j] = sf::RectangleShape(sf::Vector2f(sizei, sizej));
+            gridContents[i][j].setSize(sf::Vector2f(sizei, sizej));
             gridContents[i][j].setPosition(16+sizei*i + 8*i, 16+sizej*j + 8*j);
             recolorTile(i, j);
         }
