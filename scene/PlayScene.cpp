@@ -9,7 +9,7 @@
 // Not yet finalized
 
 PlayScene::PlayScene() {
-    rows = 16, cols = 16;
+    rows = 2, cols = 2;
 
     // load textures
     std::string texturePaths[] = {
@@ -87,7 +87,7 @@ void PlayScene::recolorTile(int r, int c) {
     int state = board[r][c];
 
     gridContents[r][c].setFillColor(sf::Color::Black);
-    gridContents[r][c].setOutlineThickness(-2);
+    gridContents[r][c].setOutlineThickness(-std::ceil(450 / std::max(rows, cols) * 0.1));
     gridContents[r][c].setOutlineColor(sf::Color::Black);
 
     if (state & AI::TileState::Passable) {
