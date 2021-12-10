@@ -5,6 +5,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <algorithm>
 // Not yet finalized
 
 PlayScene::PlayScene() {
@@ -34,31 +35,35 @@ PlayScene::PlayScene() {
 
     std::vector<Entry> entries({
         // Next iteration
-        {100, 50, 450, 100, sf::Color::Yellow, nextIteration, true, ButtonID::NextIter, 0},
+        {100, 50, 525, 50, sf::Color::Yellow, nextIteration, true, ButtonID::NextIter, 0},
         // Show solution
-        {100, 50, 450, 200, sf::Color::Blue, showSolution, false, ButtonID::ShowSolution, 0},
+        {100, 50, 525, 125, sf::Color::Blue, showSolution, false, ButtonID::ShowSolution, 0},
         // Play button
-        {100, 50, 450, 300, sf::Color::Red, play, true, ButtonID::AutoPlay, 0},
+        {100, 50, 525, 200, sf::Color::Red, play, true, ButtonID::AutoPlay, 0},
         // Randomize
-        {100, 50, 450, 400, sf::Color::Green, randomize, true, ButtonID::Randomize, 0},
-        // Move ghost
-        {100, 50, 600, 100, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 0},
-        // Move child
-        {100, 50, 600, 200, sf::Color::Cyan, moveChild, true, ButtonID::MoveChild, 0},
-        // Edit Grid
-        {100, 50, 600, 300, sf::Color::Magenta, editGrid, true, ButtonID::EditGrid, 0},
-        // Increment rows
-        {100, 50, 50, 450, sf::Color::Magenta, incRows, true, ButtonID::Other, 0},
-        // Decrement rows
-        {100, 50, 50, 550, sf::Color::Magenta, decRows, true, ButtonID::Other, 0},
-        // Increment columns
-        {100, 50, 200, 450, sf::Color::Magenta, incCols, true, ButtonID::Other, 0},
-        // Decrement columns
-        {100, 50, 200, 550, sf::Color::Magenta, decCols, true, ButtonID::Other, 0},
+        {100, 50, 525, 275, sf::Color::Green, randomize, true, ButtonID::Randomize, 0},
+
         // DFS
+        // {100, 50, 525, 350, sf::Color::Magenta, useDFS, true, ButtonID::Other, 0},
         // BFS?
-        // Dijkstra's?
-        // A* Search?
+        // {100, 50, 525, 425, sf::Color::Magenta, useBFS, true, ButtonID::Other, 0},
+        // A*?
+        // {100, 50, 525, 500, sf::Color::Magenta, useAStar, true, ButtonID::Other, 0},
+
+        // Move ghost
+        {100, 50, 650, 50, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 0},
+        // Move child
+        {100, 50, 650, 125, sf::Color::Cyan, moveChild, true, ButtonID::MoveChild, 0},
+        // Edit Grid
+        {100, 50, 650, 200, sf::Color::Magenta, editGrid, true, ButtonID::EditGrid, 0},
+        // Increment rows
+        {100, 50, 650, 275, sf::Color::Magenta, incRows, true, ButtonID::Other, 0},
+        // Decrement rows
+        {100, 50, 650, 350, sf::Color::Magenta, decRows, true, ButtonID::Other, 0},
+        // Increment columns
+        {100, 50, 650, 425, sf::Color::Magenta, incCols, true, ButtonID::Other, 0},
+        // Decrement columns
+        {100, 50, 650, 500, sf::Color::Magenta, decCols, true, ButtonID::Other, 0},
     });
 
     // Initialize UI
@@ -73,7 +78,6 @@ PlayScene::PlayScene() {
         menuItems.push_back({button, i.effect, i.enable, i.id});
     }
 
-
     // randomize grid
     randomize();
     searchMethod = std::make_unique<DFS>(board);
@@ -83,7 +87,7 @@ void PlayScene::recolorTile(int r, int c) {
     int state = board[r][c];
 
     gridContents[r][c].setFillColor(sf::Color::Black);
-    gridContents[r][c].setOutlineThickness(0);
+    gridContents[r][c].setOutlineThickness(-2);
     gridContents[r][c].setOutlineColor(sf::Color::Black);
 
     if (state & AI::TileState::Passable) {
@@ -108,13 +112,11 @@ void PlayScene::recolorTile(int r, int c) {
 
     // outline blue
     if (state & AI::TileState::HasGhost) {
-        gridContents[r][c].setOutlineThickness(4);
         gridContents[r][c].setOutlineColor(sf::Color::Blue);
     }
 
     // outline yellow
     if (state & AI::TileState::HasChild) {
-        gridContents[r][c].setOutlineThickness(4);
         gridContents[r][c].setOutlineColor(sf::Color::Yellow);
     }
 }
@@ -396,7 +398,7 @@ void PlayScene::play() {
 }
 
 void PlayScene::randomize() {
-    int sizei = 16, sizej = 16;
+    double tilesize = 450 / std::max(rows, cols);
     solved = false;
     autoPlay = false;
     generateGrid(rows, cols);
@@ -409,8 +411,8 @@ void PlayScene::randomize() {
         gridContents[i].resize(cols);
         for (int j = 0; j < cols; ++j) {
             origBoard[i][j] = board[i][j];
-            gridContents[i][j].setSize(sf::Vector2f(sizei, sizej));
-            gridContents[i][j].setPosition(16+sizei*i + 8*i, 16+sizej*j + 8*j);
+            gridContents[i][j].setSize(sf::Vector2f(tilesize, tilesize));
+            gridContents[i][j].setPosition(50 + tilesize*i, 75 + tilesize*j);
             recolorTile(i, j);
         }
     }
