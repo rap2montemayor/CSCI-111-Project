@@ -50,7 +50,7 @@ std::vector<std::pair<int, int>> DFS::nextIteration() {
     }
 
     // Pop if no more updates
-    if (not pushed) {
+    if (not pushed and not isGoalState()) {
         toVisit.pop();
     }
 
@@ -82,8 +82,15 @@ std::vector<std::pair<int, int>> DFS::nextSolutionStep() {
 }
 
 void DFS::constructSolution() {
-    if (solution.empty()){
-        toVisit.pop();
+    if (solution.empty()) {
+        while (not toVisit.empty()) {
+            if (toVisit.top() == ghost) {
+                solution.push_back(toVisit.top());
+                toVisit.pop();
+                break;
+            }
+            toVisit.pop();
+        }
         while (not toVisit.empty()) {
             solution.push_back(toVisit.top());
             toVisit.pop();
@@ -100,6 +107,7 @@ bool DFS::isGoalState() {
 }
 
 void DFS::reset() {
+    solutionstep = 0;
     while (not toVisit.empty()) {
         toVisit.pop();
     }
