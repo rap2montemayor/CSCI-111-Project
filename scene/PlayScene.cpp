@@ -3,55 +3,76 @@
 #include <chrono>
 #include <iostream>
 #include <stack>
+#include <string>
+#include <vector>
 // Not yet finalized
 
 PlayScene::PlayScene() {
     rows = 16, cols = 16;
+
+    // load textures
+    std::string texturePaths[] = {
+        "assets/temp.png"
+    };
+
+    for (std::string &i: texturePaths) {
+        textures.emplace_back();
+        sf::Texture& cur = textures.back();
+        if (not cur.loadFromFile(i)) {
+            std::cout << "Error loading texture " << i << std::endl;
+        }
+    }
     
+    struct Entry {
+        int sizex, sizey, posx, posy;
+        sf::Color color;
+        void (PlayScene::*effect)();
+        bool enable;
+        ButtonID id;
+        int textureid;
+    };
+
+    std::vector<Entry> entries({
+        // Next iteration
+        {100, 50, 450, 100, sf::Color::Yellow, nextIteration, true, ButtonID::NextIter, 0},
+        // Show solution
+        {100, 50, 450, 200, sf::Color::Blue, showSolution, false, ButtonID::ShowSolution, 0},
+        // Play button
+        {100, 50, 450, 300, sf::Color::Red, play, true, ButtonID::AutoPlay, 0},
+        // Randomize
+        {100, 50, 450, 400, sf::Color::Green, randomize, true, ButtonID::Randomize, 0},
+        // Move ghost
+        {100, 50, 600, 100, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 0},
+        // Move child
+        {100, 50, 600, 200, sf::Color::Cyan, moveChild, true, ButtonID::MoveChild, 0},
+        // Edit Grid
+        {100, 50, 600, 300, sf::Color::Magenta, editGrid, true, ButtonID::EditGrid, 0},
+        // Increment rows
+        {100, 50, 50, 450, sf::Color::Magenta, incRows, true, ButtonID::Other, 0},
+        // Decrement rows
+        {100, 50, 50, 550, sf::Color::Magenta, decRows, true, ButtonID::Other, 0},
+        // Increment columns
+        {100, 50, 200, 450, sf::Color::Magenta, incCols, true, ButtonID::Other, 0},
+        // Decrement columns
+        {100, 50, 200, 550, sf::Color::Magenta, decCols, true, ButtonID::Other, 0},
+        // DFS
+        // BFS?
+        // Dijkstra's?
+        // A* Search?
+    });
+
     // Initialize UI
     mode = ModeID::None;
-    
-    // next iteration
-    sf::RectangleShape nextButton(sf::Vector2f(100, 50));
-    nextButton.setPosition(400, 100);
-    nextButton.setFillColor(sf::Color::Yellow);
-    menuItems.push_back({nextButton, nextIteration, true, ButtonID::NextIter});
 
-    // show solution
-    sf::RectangleShape solutionButton(sf::Vector2f(100, 50));
-    solutionButton.setPosition(400, 200);
-    solutionButton.setFillColor(sf::Color::Blue);
-    menuItems.push_back({solutionButton, showSolution, false, ButtonID::ShowSolution});
+    sf::RectangleShape button;
+    for (Entry &i: entries) {
+        button.setSize(sf::Vector2f(i.sizex, i.sizey));
+        button.setPosition(i.posx, i.posy);
+        button.setFillColor(i.color);
+        button.setTexture(&textures[i.textureid]);
+        menuItems.push_back({button, i.effect, i.enable, i.id});
+    }
 
-    // play button
-    sf::RectangleShape playButton(sf::Vector2f(100, 50));
-    playButton.setPosition(400, 300);
-    playButton.setFillColor(sf::Color::Red);
-    menuItems.push_back({playButton, play, true, ButtonID::AutoPlay});
-
-    // randomize
-    sf::RectangleShape randomButton(sf::Vector2f(100, 50));
-    randomButton.setPosition(400, 400);
-    randomButton.setFillColor(sf::Color::Green);
-    menuItems.push_back({randomButton, randomize, true, ButtonID::Randomize});
-
-    // Move Ghost
-    sf::RectangleShape moveGhostButton(sf::Vector2f(100, 50));
-    moveGhostButton.setPosition(550, 100);
-    moveGhostButton.setFillColor(sf::Color::White);
-    menuItems.push_back({moveGhostButton, moveGhost, true, ButtonID::MoveGhost});
-
-    // Move child
-    sf::RectangleShape moveChildButton(sf::Vector2f(100, 50));
-    moveChildButton.setPosition(550, 200);
-    moveChildButton.setFillColor(sf::Color::Cyan);
-    menuItems.push_back({moveChildButton, moveChild, true, ButtonID::MoveChild});
-
-    // Edit Grid
-    sf::RectangleShape editGridButton(sf::Vector2f(100, 50));
-    editGridButton.setPosition(550, 300);
-    editGridButton.setFillColor(sf::Color::Magenta);
-    menuItems.push_back({editGridButton, editGrid, true, ButtonID::EditGrid});
 
     // randomize grid
     randomize();
@@ -457,4 +478,28 @@ void PlayScene::editGrid() {
         mode = ModeID::None;
         hardReset();
     }
+}
+
+void PlayScene::incRows() {
+    if (rows >= 16) return;
+    ++rows;
+    randomize();
+}
+
+void PlayScene::decRows() {
+    if (rows <= 2) return;
+    --rows;
+    randomize();
+}
+
+void PlayScene::incCols() {
+    if (cols >= 16) return;
+    ++cols;
+    randomize();
+}
+
+void PlayScene::decCols() {
+    if (cols <= 2) return;
+    --cols;
+    randomize();
 }
