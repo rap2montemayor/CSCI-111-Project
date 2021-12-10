@@ -36,7 +36,7 @@ public:
 class PlayScene : public Scene {
     enum ModeID { None, MovingChild, MovingGhost, EditingGrid };
     enum ButtonID { NextIter, ShowSolution, AutoPlay, Randomize,
-        MoveChild, MoveGhost, EditGrid };
+        MoveChild, MoveGhost, EditGrid, Other };
     struct MenuItem {
         sf::RectangleShape rect;
         void (PlayScene::*effect)();
@@ -52,6 +52,7 @@ class PlayScene : public Scene {
     std::vector<std::vector<int>> origBoard;
     std::vector<std::vector<sf::RectangleShape>> gridContents;
 public:
+    std::vector<sf::Texture> textures;
     std::list<MenuItem> menuItems;
     std::unique_ptr<AI> searchMethod;
     std::vector<std::pair<int, int>> solution;
@@ -69,11 +70,12 @@ public:
     void nextIteration();
     void showSolution();
     void play();
-    // void changeRows();
-    // void changeCols();
+    void incRows();
+    void decRows();
+    void incCols();
+    void decCols();
     void moveChild();
     void moveGhost();
     void editGrid();
-    // void changeAI();
     void hardReset();
 };
