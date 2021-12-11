@@ -21,6 +21,7 @@ class MenuScene : public Scene {
         Transition option;
     };
     std::list<MenuItem> menuItems;
+    std::vector<sf::Texture> textures;
     Transition menuSelection;
 
     void handleClick(int x, int y);
