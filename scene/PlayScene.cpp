@@ -252,6 +252,11 @@ void PlayScene::hardReset() {
     searchMethod->reset();
     autoPlay = false;
     solved = false;
+    for (MenuItem& i: menuItems) {
+        if (i.id == ButtonID::ShowSolution) {
+            i.enable = false;
+        }
+    }
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             recolorTile(i, j);
@@ -320,7 +325,7 @@ void PlayScene::initializeMenu() {
         // Decrement columns
         {100, 50, 650, 500, sf::Color::White, decCols, false, ButtonID::Extra, 4},
         // Toggle Extensions
-        {100, 50, 25, 525, sf::Color::White, toggleExtensions, true, ButtonID::ExtraToggle, textures.size()-1},
+        {100, 50, 25, 525, sf::Color::White, toggleExtensions, true, ButtonID::ExtraToggle, 14},
     };
 
     sf::RectangleShape button;
@@ -350,6 +355,7 @@ void PlayScene::loadTextures() {
         "assets/randomize.png",
         "assets/reset.png",
         "assets/solution.png",
+        "assets/toggle.png",
 
         "assets/dfs.png",
     };
