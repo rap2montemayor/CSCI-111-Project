@@ -13,7 +13,23 @@ PlayScene::PlayScene() {
 
     // load textures
     std::string texturePaths[] = {
-        "assets/temp.png"
+        "assets/child.png",
+        "assets/ghost.png",
+        
+        "assets/+cols.png",
+        "assets/+rows.png",
+        "assets/-cols.png",
+        "assets/-rows.png",
+        "assets/auto.png",
+        "assets/edittiles.png",
+        "assets/movechild.png",
+        "assets/moveghost.png",
+        "assets/next.png",
+        "assets/randomize.png",
+        "assets/reset.png",
+        "assets/solution.png",
+
+        "assets/dfs.png",
     };
 
     for (std::string &i: texturePaths) {
@@ -33,15 +49,15 @@ PlayScene::PlayScene() {
         int textureid;
     };
 
-    std::vector<Entry> entries({
+    Entry entries[] = {
         // Next iteration
-        {100, 50, 525, 50, sf::Color::Yellow, nextIteration, true, ButtonID::NextIter, 0},
+        {100, 50, 525, 50, sf::Color::White, nextIteration, true, ButtonID::NextIter, 10},
         // Show solution
-        {100, 50, 525, 125, sf::Color::Blue, showSolution, false, ButtonID::ShowSolution, 0},
+        {100, 50, 525, 125, sf::Color::White, showSolution, false, ButtonID::ShowSolution, 13},
         // Play button
-        {100, 50, 525, 200, sf::Color::Red, play, true, ButtonID::AutoPlay, 0},
+        {100, 50, 525, 200, sf::Color::White, play, true, ButtonID::AutoPlay, 6},
         // Randomize
-        {100, 50, 525, 275, sf::Color::Green, randomize, true, ButtonID::Randomize, 0},
+        {100, 50, 525, 275, sf::Color::White, randomize, true, ButtonID::Randomize, 11},
 
         // DFS
         // {100, 50, 525, 350, sf::Color::Magenta, useDFS, true, ButtonID::Other, 0},
@@ -51,20 +67,20 @@ PlayScene::PlayScene() {
         // {100, 50, 525, 500, sf::Color::Magenta, useAStar, true, ButtonID::Other, 0},
 
         // Move ghost
-        {100, 50, 650, 50, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 0},
+        {100, 50, 650, 50, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 9},
         // Move child
-        {100, 50, 650, 125, sf::Color::Cyan, moveChild, true, ButtonID::MoveChild, 0},
+        {100, 50, 650, 125, sf::Color::White, moveChild, true, ButtonID::MoveChild, 8},
         // Edit Grid
-        {100, 50, 650, 200, sf::Color::Magenta, editGrid, true, ButtonID::EditGrid, 0},
+        {100, 50, 650, 200, sf::Color::White, editGrid, true, ButtonID::EditGrid, 7},
         // Increment rows
-        {100, 50, 650, 275, sf::Color::Magenta, incRows, true, ButtonID::Other, 0},
+        {100, 50, 650, 275, sf::Color::White, incRows, true, ButtonID::Other, 3},
         // Decrement rows
-        {100, 50, 650, 350, sf::Color::Magenta, decRows, true, ButtonID::Other, 0},
+        {100, 50, 650, 350, sf::Color::White, decRows, true, ButtonID::Other, 5},
         // Increment columns
-        {100, 50, 650, 425, sf::Color::Magenta, incCols, true, ButtonID::Other, 0},
+        {100, 50, 650, 425, sf::Color::White, incCols, true, ButtonID::Other, 2},
         // Decrement columns
-        {100, 50, 650, 500, sf::Color::Magenta, decCols, true, ButtonID::Other, 0},
-    });
+        {100, 50, 650, 500, sf::Color::White, decCols, true, ButtonID::Other, 4},
+    };
 
     // Initialize UI
     mode = ModeID::None;
@@ -244,10 +260,26 @@ Scene::Transition PlayScene::update() {
 
 void PlayScene::render(sf::RenderWindow& window) {
     // Render grid
+    double tilesize = 450 / std::max(rows, cols);
     window.clear();
     for (int i = 0; i < rows; ++i) {
-        for (sf::RectangleShape& j: gridContents[i]) {
-            window.draw(j);
+        for (int j = 0; j < cols; ++j) {
+            window.draw(gridContents[i][j]);
+
+            if (board[i][j] & AI::TileState::HasGhost) {
+                // draw ghost
+                sf::RectangleShape rect(sf::Vector2f(tilesize, tilesize));
+                rect.setPosition(50 + tilesize*i, 75 + tilesize*j);
+                rect.setTexture(&textures[1]);
+                window.draw(rect);
+            }
+            if (board[i][j] & AI::TileState::HasChild) {
+                // draw child
+                sf::RectangleShape rect(sf::Vector2f(tilesize, tilesize));
+                rect.setPosition(50 + tilesize*i, 75 + tilesize*j);
+                rect.setTexture(&textures[0]);
+                window.draw(rect);
+            }
         }
     }
 
