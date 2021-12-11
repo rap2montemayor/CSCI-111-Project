@@ -1,10 +1,15 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <algorithm>
+#include <chrono>
+#include <iostream>
 #include <list>
 #include <memory>
+#include <random>
+#include <stack>
+#include <string>
+#include <vector>
 #include "../ai/AI.hpp"
-
-// Not yet finalized
 
 class Scene {
 public:
@@ -35,48 +40,62 @@ public:
 
 
 class PlayScene : public Scene {
+    // [l,r]
+    enum ButtonID { Default, Extra, ExtraToggle, ShowSolution,
+        MoveChild, MoveGhost, EditGrid };
     enum ModeID { None, MovingChild, MovingGhost, EditingGrid };
-    enum ButtonID { NextIter, ShowSolution, AutoPlay, Randomize,
-        MoveChild, MoveGhost, EditGrid, Other };
+
     struct MenuItem {
         sf::RectangleShape rect;
         void (PlayScene::*effect)();
         bool enable;
         ButtonID id;
     };
-    sf::Clock clock;
-    bool solved, autoPlay;
-    std::pair<int, int> ghost, child;
+
+    bool autoPlay, solved;
+    int cols, rows;
     ModeID mode;
-    int rows, cols;
+    sf::Clock clock;
+    std::list<MenuItem> menuItems;
+    std::mt19937 rng;
+    std::pair<int, int> child, ghost;
+    std::unique_ptr<AI> searchMethod;
+    std::vector<sf::Texture> textures;
+    std::vector<std::pair<int, int>> solution;
     std::vector<std::vector<int>> board;
     std::vector<std::vector<int>> origBoard;
     std::vector<std::vector<sf::RectangleShape>> gridContents;
+
+    double rand();
+    int randcol();
+    int randrow();
+    void decCols();
+    void decRows();
+    void editGrid();
+    void generateGrid();
+    void handleClick(int x, int y);
+    void hardReset();
+    void incCols();
+    void incRows();
+    void initializeGrid();
+    void initializeMenu();
+    void loadTextures();
+    void moveChild();
+    void moveGhost();
+    void nextIteration();
+    void placeGhostAndChild();
+    void play();
+    void populate();
+    void randomize();
+    void randomizeBoard();
+    void recolorTile(int r, int c);
+    void reset();
+    void showSolution();
+    void toggleExtensions();
+
 public:
-    std::vector<sf::Texture> textures;
-    std::list<MenuItem> menuItems;
-    std::unique_ptr<AI> searchMethod;
-    std::vector<std::pair<int, int>> solution;
     PlayScene();
     void processInput(sf::Event& event);
     Transition update();
     void render(sf::RenderWindow& window);
-    void generateGrid(int rows, int cols);
-    void recolorTile(int r, int c);
-    void handleClick(int x, int y);
-
-    // UI functions
-    void randomize();
-    void reset();
-    void nextIteration();
-    void showSolution();
-    void play();
-    void incRows();
-    void decRows();
-    void incCols();
-    void decCols();
-    void moveChild();
-    void moveGhost();
-    void editGrid();
-    void hardReset();
 };
