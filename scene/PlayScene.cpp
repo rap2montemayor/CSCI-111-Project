@@ -481,7 +481,7 @@ void PlayScene::randomizeBoard() {
         }
     }
     board[ghost.first][ghost.second] |= AI::TileState::Passable;
-    board[ghost.first][ghost.second] |= AI::TileState::Passable;
+    board[child.first][child.second] |= AI::TileState::Passable;
 }
 
 void PlayScene::recolorTile(int r, int c) {
