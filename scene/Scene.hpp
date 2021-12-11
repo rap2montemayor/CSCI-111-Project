@@ -52,7 +52,7 @@ class PlayScene : public Scene {
         ButtonID id;
     };
 
-    bool autoPlay, solved;
+    bool autoPlay, extensions, solved;
     int cols, rows;
     ModeID mode;
     sf::Clock clock;

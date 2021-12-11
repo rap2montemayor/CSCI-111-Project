@@ -4,6 +4,7 @@ PlayScene::PlayScene() {
     cols = 2;
     rows = 2;
     autoPlay = false;
+    extensions = false;
     solved = false;
     mode = ModeID::None;
     std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -185,17 +186,24 @@ void PlayScene::handleClick(int x, int y) {
                     break;
                 case ModeID::EditingGrid:
                     if (board[i][j] & AI::TileState::HasChild) {
-                        break;
+                        board[i][j] ^= AI::TileState::Dark;
+                        recolorTile(i, j);
                     } else if (board[i][j] & AI::TileState::HasGhost) {
                         break;
                     } else {
-                        if (not (board[i][j] & AI::TileState::Passable)) {
+                        if (extensions) {
+                            if (not (board[i][j] & AI::TileState::Passable)) {
+                                board[i][j] |= AI::TileState::Passable;
+                                board[i][j] |= AI::TileState::Dark;
+                            } else if (board[i][j] & AI::TileState::Dark) {
+                                board[i][j] &= ~AI::TileState::Dark;
+                            } else {
+                                board[i][j] &= ~AI::TileState::Passable;
+                            }
+                        }
+                        else {
                             board[i][j] |= AI::TileState::Passable;
-                            board[i][j] |= AI::TileState::Dark;
-                        } else if (board[i][j] & AI::TileState::Dark) {
-                            board[i][j] &= ~AI::TileState::Dark;
-                        } else {
-                            board[i][j] &= ~AI::TileState::Passable;
+                            board[i][j] ^= AI::TileState::Dark;
                         }
                         recolorTile(i, j);
                     }
@@ -530,6 +538,7 @@ void PlayScene::showSolution() {
 }
 
 void PlayScene::toggleExtensions() {
+    extensions = not extensions;
     for (MenuItem& i: menuItems) {
         if (i.id == ButtonID::Extra) {
             i.enable = not i.enable;
