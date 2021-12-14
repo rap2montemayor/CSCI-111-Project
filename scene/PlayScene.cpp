@@ -3,6 +3,7 @@
 PlayScene::PlayScene() {
     cols = 2;
     rows = 2;
+    step = 0;
     autoPlay = false;
     extensions = false;
     solved = false;
@@ -41,7 +42,7 @@ Scene::Transition PlayScene::update() {
         clock.restart();
         if (searchMethod->isWinState() and not solved) {
             autoPlay = false;
-        } else if (solved and step >= solution.size()) {
+        } else if (solved and step >= solution.size()-1) {
             autoPlay = false;
         }
         nextIteration();
@@ -383,14 +384,17 @@ void PlayScene::nextIteration() {
     std::vector<std::pair<int, int>> changes;
     if (not solved) {
         if (searchMethod->isWinState()) {
-            std::cout << "goal found!" << std::endl;
             // enable show solution button
+            std::cout << "Solution has been found" << std::endl;
+            solved = true;
             for (MenuItem &i: menuItems) {
                 if (i.id == ButtonID::ShowSolution) {
                     i.enable = true;
                 }
             }
             return;
+        } else {
+            std::cout << "Showing next state to check" << std::endl;
         }
         searchMethod->nextIteration();
     } else {
@@ -406,8 +410,10 @@ void PlayScene::nextIteration() {
 
 void PlayScene::nextSolutionStep() {
     if (step+1 >= solution.size()) {
+        std::cout << "Done showing solution" << std::endl;
         return;
     }
+    std::cout << "Showing next solution step" << std::endl;
     ++step;
     std::vector<std::vector<int>>& nextState = solution[step];
     for (int i = 0; i < rows; ++i) {
@@ -515,6 +521,8 @@ void PlayScene::showSolution() {
     reset();
     solved = true;
     step = 0;
+    std::cout << "Showing solution steps\n";
+    std::cout << "Solution has " << solution.size()-1 << " steps" << std::endl;
 }
 
 void PlayScene::toggleExtensions() {
@@ -527,11 +535,13 @@ void PlayScene::toggleExtensions() {
 }
 
 void PlayScene::useBFS() {
+    std::cout << "using BFS" << std::endl;
     searchMethod = std::make_unique<bfsAI>(board);
     hardReset();
 }
 
 void PlayScene::useGreedy() {
+    std::cout << "using greedy" << std::endl;
     searchMethod = std::make_unique<greedyAI>(board);
     hardReset();
 }
