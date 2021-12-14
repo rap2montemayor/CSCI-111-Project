@@ -2,10 +2,8 @@
 #include "../base/Game.hpp"
 #include <iostream>
 
-// Not yet finalized
 
 MenuScene::MenuScene() {
-    // populate menuitems
     menuSelection = None;
 
     std::string texturePaths[] = {

@@ -1,6 +1,6 @@
 PATH    = ../mingw32/bin
 CXX     = "../mingw32/bin/g++.exe"
-SRC     = base/*.cpp scene/*.cpp ai/*.cpp
+SRC     = base/*.cpp scene/*.cpp ai/*.cpp state/*.cpp
 OUT     = Project
 DEBUG   = compile.txt
 

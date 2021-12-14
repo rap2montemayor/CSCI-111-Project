@@ -3,13 +3,12 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <list>
 #include <memory>
 #include <random>
-#include <stack>
 #include <string>
 #include <vector>
 #include "../ai/AI.hpp"
+#include "../state/states.hpp"
 
 class Scene {
 public:
@@ -25,7 +24,7 @@ class MenuScene : public Scene {
         sf::RectangleShape rect;
         Transition option;
     };
-    std::list<MenuItem> menuItems;
+    std::vector<MenuItem> menuItems;
     std::vector<sf::Texture> textures;
     Transition menuSelection;
 
@@ -40,7 +39,6 @@ public:
 
 
 class PlayScene : public Scene {
-    // [l,r]
     enum ButtonID { Default, Extra, ExtraToggle, ShowSolution,
         MoveChild, MoveGhost, EditGrid };
     enum ModeID { None, MovingChild, MovingGhost, EditingGrid };
@@ -56,7 +54,7 @@ class PlayScene : public Scene {
     int cols, rows, step;
     ModeID mode;
     sf::Clock clock;
-    std::list<MenuItem> menuItems;
+    std::vector<MenuItem> menuItems;
     std::mt19937 rng;
     std::pair<int, int> child, ghost;
     std::unique_ptr<AI> searchMethod;

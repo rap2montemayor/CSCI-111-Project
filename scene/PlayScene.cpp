@@ -12,9 +12,9 @@ PlayScene::PlayScene() {
     ghost = {0, 0};
 
     initializeGrid();
-    board[0][0] |= AI::tileState::HAS_GHOST;
-    board[1][0] |= AI::tileState::HAS_LIGHT;
-    board[1][1] |= AI::tileState::HAS_PERSON | AI::tileState::HAS_LIGHT;
+    board[0][0] |= tileState::HAS_GHOST;
+    board[1][0] |= tileState::HAS_LIGHT;
+    board[1][1] |= tileState::HAS_PERSON | tileState::HAS_LIGHT;
     populate();
     useBFS();
 
@@ -56,14 +56,14 @@ void PlayScene::render(sf::RenderWindow& window) {
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             window.draw(gridContents[i][j]);
-            if (board[i][j] & AI::tileState::HAS_GHOST) {
+            if (board[i][j] & tileState::HAS_GHOST) {
                 // draw ghost
                 sf::RectangleShape rect(sf::Vector2f(tilesize, tilesize));
                 rect.setPosition(50 + tilesize*j, 75 + tilesize*i);
                 rect.setTexture(&textures[1]);
                 window.draw(rect);
             }
-            if (board[i][j] & AI::tileState::HAS_PERSON) {
+            if (board[i][j] & tileState::HAS_PERSON) {
                 // draw child
                 sf::RectangleShape rect(sf::Vector2f(tilesize, tilesize));
                 rect.setPosition(50 + tilesize*j, 75 + tilesize*i);
@@ -157,63 +157,35 @@ void PlayScene::handleClick(int x, int y) {
             if (upperleft.x <= x and x <= lowerright.x and upperleft.y <= y and y <= lowerright.y) {
                 switch (mode) {
                 case ModeID::MovingChild:
-                    if (board[i][j] & AI::tileState::HAS_GHOST) {
+                    if (board[i][j] & tileState::HAS_GHOST) {
                         break;
-                    } else if (board[i][j] & AI::tileState::HAS_PERSON) {
+                    } else if (board[i][j] & tileState::HAS_PERSON) {
                         break;
-                    // } else if (not (board[i][j] & AI::TileState::Passable)) {
-                    //     break;
                     } else {
-                        board[i][j] |= AI::tileState::HAS_PERSON;
-                        board[child.first][child.second] &= ~AI::tileState::HAS_PERSON;
+                        board[i][j] |= tileState::HAS_PERSON;
+                        board[child.first][child.second] &= ~tileState::HAS_PERSON;
                         recolorTile(child.first, child.second);
                         recolorTile(i, j);
                         child = {i, j};
                     }
                     break;
                 case ModeID::MovingGhost:
-                    if (board[i][j] & AI::tileState::HAS_GHOST) {
+                    if (board[i][j] & tileState::HAS_GHOST) {
                         break;
-                    } else if (board[i][j] & AI::tileState::HAS_PERSON) {
+                    } else if (board[i][j] & tileState::HAS_PERSON) {
                         break;
-                    // } else if (not (board[i][j] & AI::TileState::Passable)) {
-                    //     break;
                     } else {
-                        board[i][j] |= AI::tileState::HAS_GHOST;
-                        board[ghost.first][ghost.second] &= ~AI::tileState::HAS_GHOST;
+                        board[i][j] |= tileState::HAS_GHOST;
+                        board[ghost.first][ghost.second] &= ~tileState::HAS_GHOST;
                         recolorTile(ghost.first, ghost.second);
                         recolorTile(i, j);
                         ghost = {i, j};
                     }
                     break;
                 case ModeID::EditingGrid:
-                    if (board[i][j] & AI::tileState::HAS_GHOST) {
-                        break;
-                    } else {
-                        board[i][j] ^= AI::tileState::HAS_LIGHT;
+                    if (not (board[i][j] & tileState::HAS_GHOST)) {
+                        board[i][j] ^= tileState::HAS_LIGHT;
                         recolorTile(i, j);
-                        break;
-                    // if (board[i][j] & AI::tileState::HAS_PERSON) {
-                    //     board[i][j] ^= AI::tileState::HAS_LIGHT;
-                    //     recolorTile(i, j);
-                    // } else if (board[i][j] & AI::tileState::HAS_GHOST) {
-                    //     break;
-                    // } else {
-                    //     if (extensions) {
-                    //         if (not (board[i][j] & AI::TileState::Passable)) {
-                    //             board[i][j] |= AI::TileState::Passable;
-                    //             board[i][j] |= AI::TileState::Dark;
-                    //         } else if (board[i][j] & AI::TileState::Dark) {
-                    //             board[i][j] &= ~AI::TileState::Dark;
-                    //         } else {
-                    //             board[i][j] &= ~AI::TileState::Passable;
-                    //         }
-                    //     }
-                    //     else {
-                    //         board[i][j] |= AI::TileState::Passable;
-                    //         board[i][j] ^= AI::TileState::Dark;
-                    //     }
-                    //     recolorTile(i, j);
                     }
                     break;  
                 case ModeID::None:
@@ -396,7 +368,7 @@ void PlayScene::moveGhost() {
         hardReset();
         mode = ModeID::MovingGhost;
     } else {
-        board[ghost.first][ghost.second] &= ~AI::tileState::HAS_LIGHT;
+        board[ghost.first][ghost.second] &= ~tileState::HAS_LIGHT;
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
                 origBoard[i][j] = board[i][j];
@@ -412,7 +384,7 @@ void PlayScene::nextIteration() {
     if (not solved) {
         if (searchMethod->isWinState()) {
             std::cout << "goal found!" << std::endl;
-            // look for show solution button
+            // enable show solution button
             for (MenuItem &i: menuItems) {
                 if (i.id == ButtonID::ShowSolution) {
                     i.enable = true;
@@ -421,10 +393,8 @@ void PlayScene::nextIteration() {
             return;
         }
         searchMethod->nextIteration();
-        // changes = searchMethod->nextIteration();
     } else {
         nextSolutionStep();
-        // changes = searchMethod->nextSolutionStep();    
     }
 
     for (int i = 0; i < rows; ++i) {
@@ -432,9 +402,6 @@ void PlayScene::nextIteration() {
             recolorTile(i, j);
         }
     }
-    // for (std::pair<int, int> &p: changes) {
-        // recolorTile(p.first, p.second);
-    // }
 }
 
 void PlayScene::nextSolutionStep() {
@@ -456,8 +423,8 @@ void PlayScene::placeGhostAndChild() {
         childr = randrow();
         childc = randcol();
     } while (ghostr == childr and ghostc == childc);
-    board[ghostr][ghostc] |= AI::tileState::HAS_GHOST;
-    board[childr][childc] |= AI::tileState::HAS_PERSON | AI::tileState::HAS_LIGHT;
+    board[ghostr][ghostc] |= tileState::HAS_GHOST;
+    board[childr][childc] |= tileState::HAS_PERSON | tileState::HAS_LIGHT;
     ghost = {ghostr, ghostc};
     child = {childr, childc};
 }
@@ -503,55 +470,33 @@ void PlayScene::randomize() {
 void PlayScene::randomizeBoard() {
     for (std::vector<int>& v : board) {
         for (int& i: v) {
-            // make dark
+            // make light
             if (rand() < 1.0/3.0) {
-                i |= AI::tileState::HAS_LIGHT;
+                i |= tileState::HAS_LIGHT;
             }
-            // make impassable
-            // if (rand() < 1.0/3.0) {
-                // i &= ~AI::TileState::Passable;
-            // }
         }
     }
-    // board[ghost.first][ghost.second] |= AI::TileState::Passable;
-    // board[child.first][child.second] |= AI::TileState::Passable;
 }
 
 void PlayScene::recolorTile(int r, int c) {
     int state = board[r][c];
 
     gridContents[r][c].setFillColor(sf::Color::White);
-    // gridContents[r][c].setFillColor(sf::Color::Black);
     gridContents[r][c].setOutlineThickness(-std::ceil(450 / std::max(rows, cols) * 0.1));
     gridContents[r][c].setOutlineColor(sf::Color::Black);
 
-    // if (state & AI::TileState::Passable) {
-        // gridContents[r][c].setFillColor(sf::Color::White);
-    // } else {
-        // return;
-    // }
-
-    if (not (state & AI::tileState::HAS_LIGHT)) {
+    // color dark
+    if (not (state & tileState::HAS_LIGHT)) {
         gridContents[r][c].setFillColor(sf::Color(128, 128, 128));
     }
-    
-    // tint light blue
-    // if (state & AI::TileState::ToVisit) {
-    //     gridContents[r][c].setFillColor(sf::Color(64, 64, 128));
-    // }
-
-    // tint dark blue
-    // if (state & AI::TileState::Visited) {
-    //     gridContents[r][c].setFillColor(sf::Color(32, 32, 64));
-    // }
 
     // outline blue
-    if (state & AI::tileState::HAS_GHOST) {
+    if (state & tileState::HAS_GHOST) {
         gridContents[r][c].setOutlineColor(sf::Color::Blue);
     }
 
     // outline yellow
-    if (state & AI::tileState::HAS_PERSON) {
+    if (state & tileState::HAS_PERSON) {
         gridContents[r][c].setOutlineColor(sf::Color::Yellow);
     }
 }
