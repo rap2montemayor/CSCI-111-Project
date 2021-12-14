@@ -39,7 +39,9 @@ Scene::Transition PlayScene::update() {
             return Transition::None;
         }
         clock.restart();
-        if (searchMethod->isWinState()) {
+        if (searchMethod->isWinState() and not solved) {
+            autoPlay = false;
+        } else if (solved and step >= solution.size()) {
             autoPlay = false;
         }
         nextIteration();
