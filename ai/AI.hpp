@@ -3,28 +3,32 @@
 #include <queue>
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 class AI {
 public:
-    AI(std::vector<std::vector<int>>& board) {
+    enum tileState {
+        HAS_GHOST = (1 << 0),
+        HAS_PERSON = (1 << 1),
+        HAS_LIGHT = (1 << 2)
+    };
 
-    }; 
-    std::pair<int, int> nextIteration();
+    // AI(std::vector<std::vector<int>>& board) {
 
-    bool isWinState();
+    // }; 
+    virtual void nextIteration() = 0;
 
-    std::vector<std::vector<std::vector<int>>> getHistory();
-    
+    virtual bool isWinState() = 0;
+
+    virtual std::vector<std::vector<std::vector<int>>> getHistory() = 0;
+
+    virtual void reset() = 0;
+
+
 
 protected:
     std::vector<std::vector<int>> board;
     struct boardState {
-        enum class tileState: int {
-            HAS_GHOST = (1 << 0),
-            HAS_PERSON = (1 << 1),
-            HAS_LIGHT = (1 << 2)
-        };
-
         std::vector<std::vector<int>> tileStates;
         long long int cost = 0;
         long long int MOVE_COST = 100;
@@ -249,10 +253,24 @@ class bfsAI: public AI {
     candidateState goalStateReached;
     std::queue<candidateState> bfsQueue;
     std::vector<boardState> stepsToSolution; 
+    std::vector<std::vector<int>>& board;
 
 public:
-    bfsAI(std::vector<std::vector<int>>& board): AI(board) {
-        this->board = board;
+    bfsAI(std::vector<std::vector<int>>& board): board(board) {
+        // this->board = board;
+        reset();
+        // boardState initBoardState(board, 0);
+        // candidateState initCandidateState(initBoardState);
+        // bfsQueue.push(initCandidateState);
+        // goalStateMet = false;
+    }
+
+    void reset() {
+        while (not bfsQueue.empty()) {
+            bfsQueue.pop();
+        }
+        cost = 0;
+        stepsToSolution.clear();
         boardState initBoardState(board, 0);
         candidateState initCandidateState(initBoardState);
         bfsQueue.push(initCandidateState);
@@ -311,11 +329,20 @@ public:
 class greedyAI: public AI {
     long long int cost = 0;
     std::vector<boardState> history;
+    std::vector<std::vector<int>>& board;
 
 public:
 
-    greedyAI(std::vector<std::vector<int>>& board): AI(board) {
-        this->board = board;
+    greedyAI(std::vector<std::vector<int>>& board): board(board) {
+        // this->board = board;
+        reset();
+        // boardState initBoardState(board, 0);
+        // history.push_back(initBoardState);
+    }
+
+    void reset() {
+        cost = 0;
+        history.clear();
         boardState initBoardState(board, 0);
         history.push_back(initBoardState);
     }

@@ -53,7 +53,7 @@ class PlayScene : public Scene {
     };
 
     bool autoPlay, extensions, solved;
-    int cols, rows;
+    int cols, rows, step;
     ModeID mode;
     sf::Clock clock;
     std::list<MenuItem> menuItems;
@@ -61,7 +61,7 @@ class PlayScene : public Scene {
     std::pair<int, int> child, ghost;
     std::unique_ptr<AI> searchMethod;
     std::vector<sf::Texture> textures;
-    std::vector<std::pair<int, int>> solution;
+    std::vector<std::vector<std::vector<int>>> solution;
     std::vector<std::vector<int>> board;
     std::vector<std::vector<int>> origBoard;
     std::vector<std::vector<sf::RectangleShape>> gridContents;
@@ -83,6 +83,7 @@ class PlayScene : public Scene {
     void moveChild();
     void moveGhost();
     void nextIteration();
+    void nextSolutionStep();
     void placeGhostAndChild();
     void play();
     void populate();
