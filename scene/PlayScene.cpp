@@ -16,7 +16,7 @@ PlayScene::PlayScene() {
     board[1][0] |= AI::tileState::HAS_LIGHT;
     board[1][1] |= AI::tileState::HAS_PERSON | AI::tileState::HAS_LIGHT;
     populate();
-    searchMethod = std::make_unique<greedyAI>(board);
+    useBFS();
 
     loadTextures();
     initializeMenu();
@@ -309,12 +309,10 @@ void PlayScene::initializeMenu() {
         // Randomize
         {100, 50, 525, 275, sf::Color::White, randomize, false, ButtonID::Extra, 11},
 
-        // DFS
-        // {100, 50, 525, 350, sf::Color::Magenta, useDFS, true, ButtonID::Other, 0},
-        // BFS?
-        // {100, 50, 525, 425, sf::Color::Magenta, useBFS, true, ButtonID::Other, 0},
-        // A*?
-        // {100, 50, 525, 500, sf::Color::Magenta, useAStar, true, ButtonID::Other, 0},
+        // BFS
+        {100, 50, 525, 425, sf::Color::White, useBFS, true, ButtonID::Default, 15},
+        // Greedy
+        {100, 50, 525, 500, sf::Color::White, useGreedy, true, ButtonID::Default, 16},
 
         // Move ghost
         {100, 50, 650, 50, sf::Color::White, moveGhost, true, ButtonID::MoveGhost, 9},
@@ -363,7 +361,8 @@ void PlayScene::loadTextures() {
         "assets/solution.png",
         "assets/toggle.png",
 
-        "assets/dfs.png",
+        "assets/bfs.png",
+        "assets/greedy.png",
     };
     for (std::string &i: texturePaths) {
         textures.emplace_back();
@@ -578,4 +577,14 @@ void PlayScene::toggleExtensions() {
             i.enable = not i.enable;
         }
     }
+}
+
+void PlayScene::useBFS() {
+    searchMethod = std::make_unique<bfsAI>(board);
+    hardReset();
+}
+
+void PlayScene::useGreedy() {
+    searchMethod = std::make_unique<greedyAI>(board);
+    hardReset();
 }

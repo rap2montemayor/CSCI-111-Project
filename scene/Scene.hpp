@@ -93,6 +93,8 @@ class PlayScene : public Scene {
     void reset();
     void showSolution();
     void toggleExtensions();
+    void useBFS();
+    void useGreedy();
 
 public:
     PlayScene();
