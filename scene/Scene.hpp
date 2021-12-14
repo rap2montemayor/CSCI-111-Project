@@ -1,9 +1,15 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <algorithm>
+#include <chrono>
+#include <iostream>
 #include <list>
 #include <memory>
-
-// Not yet finalized
+#include <random>
+#include <stack>
+#include <string>
+#include <vector>
+#include "../ai/AI.hpp"
 
 class Scene {
 public:
@@ -20,6 +26,7 @@ class MenuScene : public Scene {
         Transition option;
     };
     std::list<MenuItem> menuItems;
+    std::vector<sf::Texture> textures;
     Transition menuSelection;
 
     void handleClick(int x, int y);
@@ -33,9 +40,59 @@ public:
 
 
 class PlayScene : public Scene {
-    int rows, cols;
-    std::vector<std::vector<int>> board; 
-    std::vector<std::vector<std::unique_ptr<sf::Shape>>> gridContents;
+    // [l,r]
+    enum ButtonID { Default, Extra, ExtraToggle, ShowSolution,
+        MoveChild, MoveGhost, EditGrid };
+    enum ModeID { None, MovingChild, MovingGhost, EditingGrid };
+
+    struct MenuItem {
+        sf::RectangleShape rect;
+        void (PlayScene::*effect)();
+        bool enable;
+        ButtonID id;
+    };
+
+    bool autoPlay, extensions, solved;
+    int cols, rows;
+    ModeID mode;
+    sf::Clock clock;
+    std::list<MenuItem> menuItems;
+    std::mt19937 rng;
+    std::pair<int, int> child, ghost;
+    std::unique_ptr<AI> searchMethod;
+    std::vector<sf::Texture> textures;
+    std::vector<std::pair<int, int>> solution;
+    std::vector<std::vector<int>> board;
+    std::vector<std::vector<int>> origBoard;
+    std::vector<std::vector<sf::RectangleShape>> gridContents;
+
+    double rand();
+    int randcol();
+    int randrow();
+    void decCols();
+    void decRows();
+    void editGrid();
+    void generateGrid();
+    void handleClick(int x, int y);
+    void hardReset();
+    void incCols();
+    void incRows();
+    void initializeGrid();
+    void initializeMenu();
+    void loadTextures();
+    void moveChild();
+    void moveGhost();
+    void nextIteration();
+    void placeGhostAndChild();
+    void play();
+    void populate();
+    void randomize();
+    void randomizeBoard();
+    void recolorTile(int r, int c);
+    void reset();
+    void showSolution();
+    void toggleExtensions();
+
 public:
     PlayScene();
     void processInput(sf::Event& event);
