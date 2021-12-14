@@ -2,10 +2,6 @@
 #include <cassert>
 #include <queue>
 #include <vector>
-#include <stack>
-#include <iostream>
-#include <algorithm>
-#include <list>
 #include <iostream>
 
 class AI {
@@ -15,8 +11,13 @@ public:
     }; 
     std::pair<int, int> nextIteration();
 
+    bool isWinState();
+
+    std::vector<std::vector<std::vector<int>>> getHistory();
+    
+
 protected:
-    std::vector<std::vector<int>>& board = *(new std::vector<std::vector<int>>);
+    std::vector<std::vector<int>> board;
     struct boardState {
         enum class tileState: int {
             HAS_GHOST = (1 << 0),
@@ -26,7 +27,7 @@ protected:
 
         std::vector<std::vector<int>> tileStates;
         long long int cost = 0;
-        long long int MOVE_COST = 1;
+        long long int MOVE_COST = 100;
         long long int LIGHTS_COST = 1;
 
         boardState() {
@@ -51,11 +52,25 @@ protected:
             int row, col;
             for(row = 0; row < tileStates.size(); row++) {
                 for(col = 0; col < tileStates[0].size(); col++) {
-                    if((tileStates[row][col] & (int)tileState::HAS_GHOST) == true) {
+                    if((tileStates[row][col] & (int)tileState::HAS_GHOST) == (int)tileState::HAS_GHOST) {
                         return std::make_pair(row, col);
                     }
                 }
             }
+            assert("Warning! Ghost not found" == "");
+            return std::make_pair(row, col);
+        }
+
+        std::pair<int, int> getPersonPosition() {
+            int row, col;
+            for(row = 0; row < tileStates.size(); row++) {
+                for(col = 0; col < tileStates[0].size(); col++) {
+                    if((tileStates[row][col] & (int)tileState::HAS_PERSON) == (int)tileState::HAS_PERSON) {
+                        return std::make_pair(row, col);
+                    }
+                }
+            }
+            assert("Warning! Person not found" == "");
             return std::make_pair(row, col);
         }
 
@@ -79,21 +94,11 @@ protected:
         }
 
         bool isWinState() {
-            for(std::vector<int> tileRow: tileStates) {
-                for(int tile: tileRow) {
-                    if(isTileWinState(tile)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        bool isTileWinState(int tile) {
-            return (tile & (int)tileState::HAS_GHOST) && (tile & (int)tileState::HAS_PERSON);
+            return getGhostPosition() == getPersonPosition();
         }
 
         boardState move(int drow, int dcol) {
+            assert(abs(drow) + abs(dcol) == 1);
             boardState modifiedBoard = this->copy();
             std::pair<int, int> ghostPosition = getGhostPosition();
             int row = ghostPosition.first;
@@ -108,6 +113,7 @@ protected:
         }
         
         boardState turnOff(int drow, int dcol) {
+            assert(abs(drow) + abs(dcol) == 1);
             boardState modifiedBoard = this->copy();
             std::pair<int, int> ghostPosition = getGhostPosition();
             int row = ghostPosition.first;
@@ -160,9 +166,7 @@ class bfsAI: public AI {
     struct candidateState {
         boardState board;
 
-        bool initialActionSet;
-        boardState ancestralState; //The first state after the current state that eventually leads to this candidate state
-        std::pair<int, int> ancestralModification; //The tile that differed between the current state and ancestralState
+        std::vector<boardState> history;
 
         candidateState() {
             
@@ -170,128 +174,106 @@ class bfsAI: public AI {
 
         candidateState(boardState board) {
             this->board = board.copy();
-            initialActionSet = false;
+            history.push_back(board.copy());
+        }
+
+        candidateState(boardState board, std::vector<boardState> history) {
+            this->board = board.copy();
+            for(boardState state: history) {
+                this->history.push_back(state.copy());
+            }
         }
 
         candidateState copy() {
-            candidateState copiedCandidateState(board.copy());
-            copiedCandidateState.initialActionSet = initialActionSet;
-            copiedCandidateState.ancestralState = ancestralState.copy();
-            copiedCandidateState.ancestralModification = ancestralModification;
+            candidateState copiedCandidateState(board.copy(), history);
             return copiedCandidateState;
-        }
-
-        /**
-         * Indicates that this is the first state after the current state. 
-         */
-        void populateAncestralState(candidateState &state) {
-            state.ancestralState = state.board.copy();
-            state.ancestralModification = std::make_pair(0, 0);
-            state.initialActionSet = true;
-            for(int row = 0; row < board.tileStates.size(); row++) {
-                for(int col = 0; col < board.tileStates[0].size(); col++) {
-                    if(board.tileStates[row][col] != state.board.tileStates[row][col]) {
-                        state.ancestralModification = std::make_pair(row, col);
-                    }
-                }
-            }
         }
 
         candidateState moveUp() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.moveUp();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState moveLeft() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.moveLeft();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState moveDown() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.moveDown();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState moveRight() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.moveRight();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState turnOffUp() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.turnOffUp();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState turnOffLeft() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.turnOffLeft();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState turnOffDown() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.turnOffDown();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
 
         candidateState turnOffRight() {
             candidateState nextCandidateState = copy();
             nextCandidateState.board = nextCandidateState.board.turnOffRight();
-            if(nextCandidateState.initialActionSet == false) {
-                populateAncestralState(nextCandidateState);
-            }
+            nextCandidateState.history.push_back(nextCandidateState.board.copy());
             return nextCandidateState;
         }
     };
-
+    bool goalStateMet;
+    candidateState goalStateReached;
+    std::queue<candidateState> bfsQueue;
+    std::vector<boardState> stepsToSolution; 
 
 public:
     bfsAI(std::vector<std::vector<int>>& board): AI(board) {
         this->board = board;
+        boardState initBoardState(board, 0);
+        candidateState initCandidateState(initBoardState);
+        bfsQueue.push(initCandidateState);
+        goalStateMet = false;
     }
 
-    std::pair<int, int> nextIteration() {
-        boardState currBoard(board, cost); //Insert initial board 
-        boardState nextBoard = currBoard.copy(); //The next state of the board
-        std::pair<int, int> modifiedTile; //Where the next action is performed
-
-        std::queue<candidateState> bfsQueue;
-        candidateState initState(currBoard);
-        bfsQueue.push(initState);
-        bool goalStateMet = currBoard.isWinState();
-        while(goalStateMet == false) {
+    void nextIteration() {
+        if(goalStateMet) {
+            board = goalStateReached.board.tileStates;
+            return;
+        } else if(bfsQueue.empty()) {
+            //End state is unreachable
+            //This should have an error flag
+            return;
+        } else {
             candidateState curr = bfsQueue.front(); bfsQueue.pop();
+            board = curr.board.tileStates;
+            cost = curr.board.cost;
             if(curr.board.isWinState()) {
                 goalStateMet = true;
-                nextBoard = curr.ancestralState;
-                modifiedTile = curr.ancestralModification;
-                cost = curr.ancestralState.cost;
+                goalStateReached = curr.copy();
             } else {
                 bfsQueue.push(curr.moveUp());
                 bfsQueue.push(curr.moveLeft());
@@ -304,54 +286,119 @@ public:
             }
         }
 
-        board = nextBoard.tileStates;
-        return modifiedTile;
+        return;
+    }
+
+    bool isWinState() {
+        return goalStateMet;
+    }
+
+    std::vector<std::vector<std::vector<int>>> getHistory() {
+        if(isWinState()) {
+            std::vector<std::vector<std::vector<int>>> historyAsGrid;
+            for(boardState board: goalStateReached.history) {
+                historyAsGrid.push_back(board.tileStates);
+            }
+            return historyAsGrid;
+        } else {
+            //Undefined behavior - win state not reached yet.
+            std::vector<std::vector<std::vector<int>>> emptyVector;
+            return emptyVector;
+        }
     }
 };
 
-/**
- * Assumes that the ghost starts on the upper-left and the human is at the lower-right 
- */
 class greedyAI: public AI {
     long long int cost = 0;
+    std::vector<boardState> history;
 
 public:
+
     greedyAI(std::vector<std::vector<int>>& board): AI(board) {
         this->board = board;
+        boardState initBoardState(board, 0);
+        history.push_back(initBoardState);
     }
 
-    std::pair<int, int> nextIteration() {
-        bool goalStateMet = false;
-        boardState currBoard(board, cost); //Insert initial board 
-        boardState nextBoard = currBoard.copy(); //The next state of the board
-        std::pair<int, int> modifiedTile; //Where the next action is performed
+    void nextIteration() {
+        boardState currBoard(board, cost); //Insert initial board
         if(currBoard.isWinState() == false) {
-            nextBoard = currBoard.copy();
             std::pair<int, int> ghostPosition = currBoard.getGhostPosition();
+            std::pair<int, int> personPosition = currBoard.getPersonPosition();
+            std::pair<int, int> direction = std::make_pair(personPosition.first - ghostPosition.first, personPosition.second - ghostPosition.second);
+            if(direction.first != 0) {
+                direction.first /= abs(direction.first);
+            }
+            if(direction.second != 0) {
+                direction.second /= abs(direction.second);
+            }
             std::pair<int, int> downTile = std::make_pair(ghostPosition.first + 1, ghostPosition.second);
 
-            if(currBoard.canMoveTo(ghostPosition.first, ghostPosition.second + 1)) {
-                nextBoard = nextBoard.moveRight();
-                modifiedTile = std::make_pair(ghostPosition.first, ghostPosition.second + 1);
-                cost = nextBoard.cost;
-            } else if(currBoard.canMoveTo(ghostPosition.first + 1, ghostPosition.second)) {
-                nextBoard = nextBoard.moveDown();
-                modifiedTile = std::make_pair(ghostPosition.first + 1, ghostPosition.second);
-                cost = nextBoard.cost;
-            } else if(currBoard.canTurnOff(ghostPosition.first, ghostPosition.second + 1)) {
-                nextBoard = nextBoard.turnOffRight();
-                modifiedTile = std::make_pair(ghostPosition.first, ghostPosition.second + 1);
-                cost = nextBoard.cost;
-            } else if(currBoard.canTurnOff(ghostPosition.first + 1, ghostPosition.second)) {
-                nextBoard = nextBoard.turnOffDown();
-                modifiedTile = std::make_pair(ghostPosition.first + 1, ghostPosition.second);
-                cost = nextBoard.cost;
+            if(direction.first != 0 && currBoard.canMoveTo(ghostPosition.first + direction.first, ghostPosition.second)) {
+                currBoard = currBoard.move(direction.first, 0);
+                cost = currBoard.cost;
+            } else if(direction.second != 0 && currBoard.canMoveTo(ghostPosition.first, ghostPosition.second + direction.second)) {
+                currBoard = currBoard.move(0, direction.second);
+                cost = currBoard.cost;
+            } else if(direction.first != 0 && currBoard.canTurnOff(ghostPosition.first + direction.first, ghostPosition.second)) {
+                currBoard = currBoard.turnOff(direction.first, 0);
+                cost = currBoard.cost;
+            } else if(direction.second != 0 && currBoard.canTurnOff(ghostPosition.first, ghostPosition.second + direction.second)) {
+                currBoard = currBoard.turnOff(0, direction.second);
+                cost = currBoard.cost;
             } else {
                 assert(currBoard.isWinState());
             }
+            history.push_back(currBoard.copy());
         }
 
-        board = nextBoard.tileStates;
-        return modifiedTile;
+        board = currBoard.tileStates;
+        cost = currBoard.cost;
+        return;
+    }
+
+    bool isWinState() {
+        return history.back().isWinState();
+    }
+
+    std::vector<std::vector<std::vector<int>>> getHistory() {
+        std::vector<std::vector<std::vector<int>>> historyAsGrid;
+        for(boardState board: history) {
+            historyAsGrid.push_back(board.tileStates);
+        }
+        return historyAsGrid;
     }
 };
+
+/*int main() {
+    int COL = 2;
+    int ROW = 2;
+    std::vector<std::vector<int>> v(ROW);
+    for(int i = 0; i < ROW; i++) v[i].resize(COL);
+    v[0][0] = 4; v[0][1] = 1;
+    v[1][0] = 6; v[1][1] = 0;
+    bfsAI bai(v);
+    greedyAI gai(v);
+
+    std::cout << "BFS TEST" << std::endl;
+    while(!bai.isWinState()) {
+        bai.nextIteration();
+    }
+    std::cout << "HISTORY BFS" << std::endl;
+    for(std::vector<std::vector<int>> board: bai.getHistory()) {
+        printBoardTiles(board);
+        std::cout << std::endl;
+    }
+
+    std::cout << "GREEDY TEST" << std::endl;
+    while(!gai.isWinState()) {
+        gai.nextIteration();
+    }
+    std::cout << "HISTORY GREEDY" << std::endl;
+    for(std::vector<std::vector<int>> board: gai.getHistory()) {
+        printBoardTiles(board);
+        std::cout << std::endl;
+    }
+
+    return 0;
+}*/
