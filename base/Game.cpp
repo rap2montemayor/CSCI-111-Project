@@ -23,6 +23,7 @@ void Game::start() {
 
     // Main game loop
     while (gameState != Exiting) {
+        previousState = gameState;
 
         // Process input and pass to scene
         processInput();

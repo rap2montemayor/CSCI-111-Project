@@ -2,6 +2,11 @@
 #include <cassert>
 #include <queue>
 #include <vector>
+#include <stack>
+#include <iostream>
+#include <algorithm>
+#include <list>
+#include <iostream>
 
 class AI {
 public:

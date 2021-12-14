@@ -7,18 +7,43 @@
 MenuScene::MenuScene() {
     // populate menuitems
     menuSelection = None;
-    
-    // play game
-    sf::RectangleShape playButton(sf::Vector2f(400, 100));
-    playButton.setPosition(200.0, 250.0);
-    playButton.setFillColor(sf::Color::Yellow);
-    menuItems.push_back({playButton, Play});
 
-    // exit
-    sf::RectangleShape exitButton(sf::Vector2f(400, 100));
-    exitButton.setPosition(200.0, 400.0);
-    exitButton.setFillColor(sf::Color::Yellow);
-    menuItems.push_back({exitButton, Exit});
+    std::string texturePaths[] = {
+        "assets/start.png",
+        "assets/exit.png",
+        "assets/title.png"
+    };
+
+    for (std::string &i: texturePaths) {
+        textures.emplace_back();
+        sf::Texture& cur = textures.back();
+        if (not cur.loadFromFile(i)) {
+            std::cout << "Error loading texture " << i << std::endl;
+        }
+    }
+
+    struct Entry {
+        int sizex, sizey, posx, posy;
+        sf::Color color;
+        Transition transition;
+        int textureid;
+    };
+
+    Entry entries[] = {
+        // Start
+        {400, 100, 200, 250, sf::Color::White, Transition::Play, 0},
+        // Exit
+        {400, 100, 200, 400, sf::Color::White, Transition::Exit, 1},
+    };
+
+    sf::RectangleShape button;
+    for (Entry& i: entries) {
+        button.setSize(sf::Vector2f(i.sizex, i.sizey));
+        button.setPosition(i.posx, i.posy);
+        button.setFillColor(i.color);
+        button.setTexture(&textures[i.textureid]);
+        menuItems.push_back({button, i.transition});
+    }
 }
 
 void MenuScene::handleClick(int x, int y) {
@@ -53,6 +78,9 @@ Scene::Transition MenuScene::update() {
 void MenuScene::render(sf::RenderWindow& window) {
     // render menuitems
     window.clear();
+    sf::RectangleShape bg(sf::Vector2f(800, 600));
+    bg.setTexture(&textures[2]);
+    window.draw(bg);
     for (MenuItem& i: menuItems) {
         window.draw(i.rect);
     }
