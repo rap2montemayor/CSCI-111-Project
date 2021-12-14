@@ -3,7 +3,7 @@
 #include <queue>
 #include <vector>
 #include <iostream>
-#include <unordered_set>
+#include <set>
 
 class AI {
 public:
@@ -254,6 +254,7 @@ class bfsAI: public AI {
     std::queue<candidateState> bfsQueue;
     std::vector<boardState> stepsToSolution; 
     std::vector<std::vector<int>>& board;
+    std::set<std::vector<std::vector<int>>> visitedStates;
 
 public:
     bfsAI(std::vector<std::vector<int>>& board): board(board) {
@@ -269,6 +270,7 @@ public:
         while (not bfsQueue.empty()) {
             bfsQueue.pop();
         }
+        visitedStates.clear();
         cost = 0;
         stepsToSolution.clear();
         boardState initBoardState(board, 0);
@@ -293,14 +295,22 @@ public:
                 goalStateMet = true;
                 goalStateReached = curr.copy();
             } else {
-                bfsQueue.push(curr.moveUp());
-                bfsQueue.push(curr.moveLeft());
-                bfsQueue.push(curr.moveDown());
-                bfsQueue.push(curr.moveRight());
-                bfsQueue.push(curr.turnOffUp());
-                bfsQueue.push(curr.turnOffLeft());
-                bfsQueue.push(curr.turnOffDown());
-                bfsQueue.push(curr.turnOffRight());
+                std::vector<candidateState> nextStates;
+                nextStates.push_back(curr.moveUp());
+                nextStates.push_back(curr.moveLeft());
+                nextStates.push_back(curr.moveDown());
+                nextStates.push_back(curr.moveRight());
+                nextStates.push_back(curr.turnOffUp());
+                nextStates.push_back(curr.turnOffLeft());
+                nextStates.push_back(curr.turnOffDown());
+                nextStates.push_back(curr.turnOffRight());
+
+                for (candidateState& i: nextStates) {
+                    if (visitedStates.count(i.board.tileStates) == 0) {
+                        bfsQueue.push(i);
+                        visitedStates.insert(i.board.tileStates);
+                    }
+                }
             }
         }
 
