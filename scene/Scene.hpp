@@ -3,13 +3,12 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <list>
 #include <memory>
 #include <random>
-#include <stack>
 #include <string>
 #include <vector>
 #include "../ai/AI.hpp"
+#include "../state/states.hpp"
 
 class Scene {
 public:
@@ -25,7 +24,7 @@ class MenuScene : public Scene {
         sf::RectangleShape rect;
         Transition option;
     };
-    std::list<MenuItem> menuItems;
+    std::vector<MenuItem> menuItems;
     std::vector<sf::Texture> textures;
     Transition menuSelection;
 
@@ -40,7 +39,6 @@ public:
 
 
 class PlayScene : public Scene {
-    // [l,r]
     enum ButtonID { Default, Extra, ExtraToggle, ShowSolution,
         MoveChild, MoveGhost, EditGrid };
     enum ModeID { None, MovingChild, MovingGhost, EditingGrid };
@@ -53,15 +51,15 @@ class PlayScene : public Scene {
     };
 
     bool autoPlay, extensions, solved;
-    int cols, rows;
+    int cols, rows, step;
     ModeID mode;
     sf::Clock clock;
-    std::list<MenuItem> menuItems;
+    std::vector<MenuItem> menuItems;
     std::mt19937 rng;
     std::pair<int, int> child, ghost;
     std::unique_ptr<AI> searchMethod;
     std::vector<sf::Texture> textures;
-    std::vector<std::pair<int, int>> solution;
+    std::vector<std::vector<std::vector<int>>> solution;
     std::vector<std::vector<int>> board;
     std::vector<std::vector<int>> origBoard;
     std::vector<std::vector<sf::RectangleShape>> gridContents;
@@ -83,6 +81,7 @@ class PlayScene : public Scene {
     void moveChild();
     void moveGhost();
     void nextIteration();
+    void nextSolutionStep();
     void placeGhostAndChild();
     void play();
     void populate();
@@ -92,6 +91,8 @@ class PlayScene : public Scene {
     void reset();
     void showSolution();
     void toggleExtensions();
+    void useBFS();
+    void useGreedy();
 
 public:
     PlayScene();
